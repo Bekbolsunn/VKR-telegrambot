@@ -1,0 +1,8 @@
+# Telegram Bot
+aiogram==3.7.0
+python-dotenv==1.0.1
+
+# Django Admin Panel
+django==4.2.11
+django-unfold==0.35.0
+pillow==10.3.0

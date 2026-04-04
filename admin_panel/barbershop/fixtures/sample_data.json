@@ -1,0 +1,27 @@
+[
+  {"model": "barbershop.barber", "pk": 1, "fields": {"name": "Азамат Бейшенов",  "specialty": "Классика, Фейд",       "telegram_id": null, "is_active": true,  "rating": "4.9"}},
+  {"model": "barbershop.barber", "pk": 2, "fields": {"name": "Эрлан Токтосунов", "specialty": "Борода, Тейпер",       "telegram_id": null, "is_active": true,  "rating": "4.8"}},
+  {"model": "barbershop.barber", "pk": 3, "fields": {"name": "Тимур Абдиев",     "specialty": "Скин-фейд, Дизайн",   "telegram_id": null, "is_active": true,  "rating": "5.0"}},
+
+  {"model": "barbershop.service", "pk": 1, "fields": {"name": "Классическая стрижка", "price": 350, "duration_minutes": 45, "is_active": true}},
+  {"model": "barbershop.service", "pk": 2, "fields": {"name": "Стрижка + борода",     "price": 550, "duration_minutes": 60, "is_active": true}},
+  {"model": "barbershop.service", "pk": 3, "fields": {"name": "Фейд (Fade)",          "price": 450, "duration_minutes": 50, "is_active": true}},
+  {"model": "barbershop.service", "pk": 4, "fields": {"name": "Детская стрижка",      "price": 250, "duration_minutes": 30, "is_active": true}},
+  {"model": "barbershop.service", "pk": 5, "fields": {"name": "Оформление бороды",    "price": 250, "duration_minutes": 30, "is_active": true}},
+  {"model": "barbershop.service", "pk": 6, "fields": {"name": "Укладка",              "price": 200, "duration_minutes": 20, "is_active": true}},
+
+  {"model": "barbershop.promotion", "pk": 1, "fields": {"title": "Нооруз — скидка 21%",  "description": "На все услуги -21% в честь Нооруза!",       "discount_percent": 21, "promo_code": "NOORUZ21",   "start_date": "2026-03-21", "end_date": "2026-03-25", "is_active": true}},
+  {"model": "barbershop.promotion", "pk": 2, "fields": {"title": "Папа + Сын",           "description": "Запишитесь вдвоём — второй со скидкой 30%", "discount_percent": 30, "promo_code": "PAPASON30",  "start_date": "2026-01-01", "end_date": "2026-12-31", "is_active": true}},
+  {"model": "barbershop.promotion", "pk": 3, "fields": {"title": "Будни выгоднее",       "description": "Пн–Ср скидка 15% на все услуги",            "discount_percent": 15, "promo_code": "WEEKDAY15",  "start_date": "2026-01-01", "end_date": "2026-12-31", "is_active": true}},
+  {"model": "barbershop.promotion", "pk": 4, "fields": {"title": "День независимости",   "description": "31 августа — скидка 31% на всё!",           "discount_percent": 31, "promo_code": "KG31",       "start_date": "2026-08-31", "end_date": "2026-08-31", "is_active": false}},
+
+  {"model": "barbershop.client", "pk": 1, "fields": {"telegram_id": 111111111, "name": "Бекболсун К.", "phone": "+996 700 000 001", "language": "ru", "loyalty_points": 340, "referral_code": "BEKBOL2026", "is_blocked": false, "created_at": "2026-01-15T10:00:00Z"}},
+  {"model": "barbershop.client", "pk": 2, "fields": {"telegram_id": 222222222, "name": "Айбек М.",     "phone": "+996 550 000 002", "language": "ru", "loyalty_points": 120, "referral_code": "AIBEK2026",  "is_blocked": false, "created_at": "2026-02-01T12:00:00Z"}},
+  {"model": "barbershop.client", "pk": 3, "fields": {"telegram_id": 333333333, "name": "Нурбек А.",    "phone": "+996 770 000 003", "language": "ky", "loyalty_points": 500, "referral_code": "NURBEK2026", "is_blocked": false, "created_at": "2026-02-10T09:00:00Z"}},
+
+  {"model": "barbershop.appointment", "pk": 1, "fields": {"client": 1, "barber": 1, "service": 3, "date": "2026-03-24", "time": "14:00:00", "status": "confirmed", "payment_status": "prepaid", "promo_code": "",          "notes": "", "created_at": "2026-03-20T10:00:00Z"}},
+  {"model": "barbershop.appointment", "pk": 2, "fields": {"client": 2, "barber": 2, "service": 2, "date": "2026-03-24", "time": "11:00:00", "status": "confirmed", "payment_status": "unpaid",  "promo_code": "NOORUZ21",  "notes": "", "created_at": "2026-03-20T11:00:00Z"}},
+  {"model": "barbershop.appointment", "pk": 3, "fields": {"client": 3, "barber": 3, "service": 1, "date": "2026-03-22", "time": "10:00:00", "status": "completed", "payment_status": "paid",    "promo_code": "",          "notes": "", "created_at": "2026-03-19T15:00:00Z"}},
+
+  {"model": "barbershop.review", "pk": 1, "fields": {"appointment": 3, "rating": 5, "text": "Отличный мастер! Тимур сделал именно то что я хотел. Буду ходить только к нему!", "created_at": "2026-03-22T12:00:00Z"}}
+]

@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BarberBoss</title>
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:      #F5F5F5;
+  --surface: #FFFFFF;
+  --label:   #111111;
+  --label2:  #444444;
+  --muted:   #888888;
+  --sep:     #EBEBEB;
+  --yellow:  #FFCC00;
+  --green:   #4CAF50;
+  --red:     #F44336;
+  --r:       14px;
+  --r-sm:    10px;
+  --r-btn:   12px;
+}
+
+/* ── RESET ── */
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+::-webkit-scrollbar { display: none; }
+
+html { background: var(--bg); }
+
+body {
+  font-family: -apple-system, 'Inter', 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--label);
+  min-height: 100dvh;
+  max-width: 430px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── PAGES ── */
+.page      { display: none; padding: 0 0 76px; min-height: 100dvh; }
+.page.on   { display: block; animation: up .2s ease; }
+.step      { display: none; }
+.step.on   { display: block; animation: up .2s ease; }
+@keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+/* ── TAB BAR ── */
+.tabs {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: var(--surface);
+  border-top: 1px solid var(--sep);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 10px 0 8px;
+  font-size: 10px; color: var(--muted);
+  cursor: pointer; user-select: none; transition: color .15s;
+}
+.tab .ic { font-size: 22px; line-height: 1; }
+.tab.on { color: var(--label); }
+.tab.on .ic { /* жёлтая точка под активной вкладкой */ }
+.tab-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--yellow); margin-top: 2px;
+  display: none;
+}
+.tab.on .tab-dot { display: block; }
+
+/* ── HEADER ── */
+.hdr {
+  padding: 20px 16px 4px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr-title {
+  font-size: 24px; font-weight: 700; letter-spacing: -.4px;
+}
+.hdr-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* ── SECTION ── */
+.sec { padding: 0 16px; margin-bottom: 20px; }
+.sec-label {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 10px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; cursor: pointer;
+  transition: background .1s;
+}
+.row:active { background: #F9F9F9; }
+.row + .row { border-top: 1px solid var(--sep); }
+.row-body { flex: 1; min-width: 0; }
+.row-title { font-size: 16px; font-weight: 500; }
+.row-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.row-right { color: #CCCCCC; font-size: 20px; line-height: 1; }
+.row-right::after { content: '›'; }
+
+/* ── КНОПКИ ── */
+.btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 50px; border-radius: var(--r-btn);
+  font-size: 16px; font-weight: 600;
+  border: none; cursor: pointer;
+  transition: transform .1s, opacity .1s;
+  letter-spacing: -.1px;
+}
+.btn:active { transform: scale(.98); opacity: .9; }
+.btn-y  { background: var(--yellow); color: var(--label); }
+.btn-gr { background: #F0F0F0; color: var(--label2); }
+
+/* ── HOME ── */
+.greeting {
+  padding: 20px 16px 0;
+  font-size: 22px; font-weight: 700; letter-spacing: -.3px;
+}
+.greeting .sub { font-size: 14px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+
+/* Следующая запись */
+.next-card {
+  margin: 16px 16px 0;
+  background: var(--label);
+  border-radius: var(--r);
+  padding: 18px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.next-card:active { opacity: .9; }
+.next-label { font-size: 11px; color: rgba(255,255,255,.45); font-weight: 600; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+.next-name  { font-size: 20px; font-weight: 700; color: white; }
+.next-meta  { font-size: 14px; color: rgba(255,255,255,.5); margin-top: 4px; }
+.next-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 14px; background: var(--yellow); color: var(--label);
+  border-radius: 20px; padding: 5px 12px; font-size: 13px; font-weight: 600;
+}
+
+/* Быстрые кнопки */
+.quick {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; padding: 16px 16px 0;
+  margin-bottom: 20px;
+}
+.qcard {
+  background: var(--surface); border-radius: var(--r);
+  padding: 16px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: transform .1s;
+}
+.qcard:active { transform: scale(.97); }
+.qcard .qi { font-size: 26px; }
+.qcard .qt { font-size: 14px; font-weight: 600; }
+.qcard .qs { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+/* Баннер акции */
+.promo-bar {
+  margin: 0 16px 20px;
+  background: var(--yellow);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: opacity .15s;
+}
+.promo-bar:active { opacity: .85; }
+.pb-tag  { font-size: 11px; font-weight: 700; color: rgba(0,0,0,.5); text-transform: uppercase; letter-spacing: .6px; }
+.pb-title { font-size: 17px; font-weight: 700; color: var(--label); margin-top: 2px; }
+.pb-desc  { font-size: 12px; color: rgba(0,0,0,.5); margin-top: 1px; }
+.pb-num   { font-size: 28px; font-weight: 800; color: var(--label); opacity: .12; }
+
+/* ── ЗАПИСЬ ── */
+.step-nav {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 16px 0;
+}
+.back {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--label);
+  cursor: pointer; flex-shrink: 0;
+  border: 1px solid var(--sep);
+  transition: background .1s;
+}
+.back:active { background: var(--sep); }
+.prog { flex: 1; display: flex; gap: 5px; }
+.pd { flex: 1; height: 3px; border-radius: 2px; background: var(--sep); }
+.pd.on { background: var(--yellow); }
+
+.step-body { padding: 16px 16px 0; }
+.step-ttl { font-size: 24px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 4px; }
+.step-sub { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+/* Карточки мастеров */
+.brow {
+  background: var(--surface); border-radius: var(--r);
+  padding: 14px; display: flex; align-items: center; gap: 14px;
+  cursor: pointer; margin-bottom: 10px;
+  border: 2px solid transparent;
+  transition: border-color .15s;
+}
+.brow.sel { border-color: var(--yellow); }
+.brow:active { background: #FAFAFA; }
+.bav {
+  width: 50px; height: 50px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.av1 { background: #111; } .av2 { background: #333; } .av3 { background: #555; }
+.bn  { font-size: 16px; font-weight: 600; }
+.bs  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.br  { font-size: 12px; color: #F59E0B; margin-top: 3px; }
+.bchk {
+  margin-left: auto; width: 22px; height: 22px;
+  border-radius: 50%; border: 2px solid var(--sep);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  transition: all .15s; font-size: 12px; color: white;
+}
+.brow.sel .bchk { background: var(--yellow); border-color: var(--yellow); color: var(--label); }
+.brow.sel .bchk::after { content: '✓'; font-weight: 700; }
+
+/* Даты */
+.dates { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 2px; }
+.dchip {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  min-width: 50px; padding: 10px 6px;
+  background: var(--surface); border-radius: var(--r-sm);
+  border: 2px solid transparent; cursor: pointer; flex-shrink: 0;
+  transition: border-color .15s;
+}
+.dchip.sel { border-color: var(--yellow); }
+.dday { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+.dnum { font-size: 20px; font-weight: 700; }
+.dmon { font-size: 10px; color: var(--muted); }
+.dchip.sel .dday, .dchip.sel .dmon, .dchip.sel .dnum { color: var(--label); }
+
+/* Слоты */
+.sgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.sl {
+  padding: 12px 4px; background: var(--surface);
+  border-radius: var(--r-sm); text-align: center;
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .15s;
+}
+.sl.busy { opacity: .3; cursor: default; font-size: 11px; text-decoration: line-through; }
+.sl.sel  { border-color: var(--yellow); font-weight: 600; }
+.sl:not(.busy):active { background: #F9F9F9; }
+
+/* Услуги */
+.srow {
+  background: var(--surface); border-radius: var(--r);
+  padding: 14px 16px; display: flex; align-items: center;
+  justify-content: space-between; cursor: pointer; margin-bottom: 10px;
+  border: 2px solid transparent; transition: border-color .15s;
+}
+.srow.sel { border-color: var(--yellow); }
+.srow:active { background: #FAFAFA; }
+.sn { font-size: 16px; font-weight: 500; }
+.sm { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.sp { font-size: 17px; font-weight: 700; }
+
+/* Подтверждение */
+.cflist { background: var(--surface); border-radius: var(--r); overflow: hidden; margin-bottom: 14px; }
+.cfrow  { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; }
+.cfrow + .cfrow { border-top: 1px solid var(--sep); }
+.cfk { font-size: 14px; color: var(--muted); }
+.cfv { font-size: 15px; font-weight: 500; }
+.cfv.big { font-size: 18px; font-weight: 700; }
+
+/* Промокод */
+.promo-input-wrap { margin-bottom: 14px; }
+.promo-field {
+  display: flex; gap: 8px;
+}
+.promo-field input {
+  flex: 1; height: 48px; border-radius: var(--r-btn);
+  border: 1.5px solid var(--sep); background: var(--surface);
+  padding: 0 14px; font-size: 15px; font-family: monospace;
+  letter-spacing: 1px; color: var(--label); outline: none;
+  transition: border-color .15s; text-transform: uppercase;
+}
+.promo-field input:focus { border-color: var(--yellow); }
+.promo-field input.ok  { border-color: var(--green); background: #F1FDF3; }
+.promo-field input.err { border-color: var(--red);   background: #FFF5F5; }
+.promo-field .apply-btn {
+  height: 48px; padding: 0 18px; border-radius: var(--r-btn);
+  background: var(--label); color: white; font-size: 14px; font-weight: 600;
+  border: none; cursor: pointer; white-space: nowrap; transition: opacity .15s;
+}
+.promo-field .apply-btn:active { opacity: .8; }
+.promo-msg { font-size: 13px; margin-top: 6px; padding: 0 2px; }
+.promo-msg.ok  { color: var(--green); }
+.promo-msg.err { color: var(--red); }
+
+/* Баллы */
+.pts-toggle {
+  background: var(--surface); border-radius: var(--r);
+  padding: 14px 16px; display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 14px;
+  cursor: pointer; transition: background .1s; border: 1.5px solid var(--sep);
+}
+.pts-toggle.on { border-color: var(--yellow); background: #FFFDE7; }
+.pts-toggle:active { background: #F9F9F9; }
+.pt-left .pt-title { font-size: 15px; font-weight: 600; }
+.pt-left .pt-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.pt-right { display: flex; align-items: center; gap: 8px; }
+.pt-check {
+  width: 24px; height: 24px; border-radius: 6px;
+  border: 2px solid var(--sep); display: flex; align-items: center;
+  justify-content: center; font-size: 14px; transition: all .15s;
+}
+.pts-toggle.on .pt-check { background: var(--yellow); border-color: var(--yellow); }
+.pts-toggle.on .pt-check::after { content: '✓'; font-weight: 700; }
+
+/* Отзыв */
+.review-stars { display: flex; justify-content: center; gap: 12px; margin: 20px 0; }
+.star {
+  font-size: 40px; cursor: pointer; transition: transform .15s;
+  filter: grayscale(1) opacity(.3);
+}
+.star.on { filter: none; transform: scale(1.1); }
+.review-textarea {
+  width: 100%; min-height: 100px; border-radius: var(--r);
+  border: 1.5px solid var(--sep); background: var(--surface);
+  padding: 14px; font-size: 15px; font-family: inherit;
+  color: var(--label); outline: none; resize: none;
+  transition: border-color .15s;
+}
+.review-textarea:focus { border-color: var(--yellow); }
+.review-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.rtag {
+  padding: 7px 14px; border-radius: 20px; font-size: 13px;
+  background: var(--surface); border: 1.5px solid var(--sep);
+  cursor: pointer; transition: all .15s;
+}
+.rtag.on { background: var(--yellow); border-color: var(--yellow); color: var(--label); font-weight: 600; }
+
+/* Успех */
+.ok-wrap { display: flex; flex-direction: column; align-items: center; padding: 52px 24px 32px; text-align: center; }
+.ok-icon {
+  width: 72px; height: 72px; border-radius: 50%; background: var(--yellow);
+  display: flex; align-items: center; justify-content: center; font-size: 32px;
+  margin-bottom: 20px; animation: pop .35s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+.ok-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.ok-sub   { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+/* Оплата */
+.pay-ttl { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.prow { background: var(--surface); display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; }
+.prow + .prow { border-top: 1px solid var(--sep); }
+.prow:active { background: #F9F9F9; }
+.plogo { font-size: 24px; width: 32px; text-align: center; flex-shrink: 0; }
+.pname { font-size: 15px; font-weight: 500; }
+.pnum  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.parr  { margin-left: auto; color: #CCC; font-size: 18px; }
+.parr::after { content: '›'; }
+
+/* ── ПРАЙС ── */
+.cats { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px 14px; }
+.cat {
+  padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  background: var(--surface); color: var(--muted);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  border: 1.5px solid var(--sep); transition: all .15s;
+}
+.cat.on { background: var(--yellow); color: var(--label); border-color: var(--yellow); }
+
+.prow2 { background: var(--surface); display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; }
+.prow2 + .prow2 { border-top: 1px solid var(--sep); }
+.pn { font-size: 16px; font-weight: 400; }
+.pd2 { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.pp { font-size: 16px; font-weight: 700; }
+
+/* ── АКЦИИ ── */
+.pcard {
+  margin: 0 16px 12px;
+  background: var(--surface); border-radius: var(--r);
+  padding: 18px; cursor: pointer;
+  border-left: 4px solid var(--yellow);
+  transition: transform .15s;
+}
+.pcard:active { transform: scale(.98); }
+.ptag   { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.ptitle { font-size: 18px; font-weight: 700; letter-spacing: -.2px; margin-bottom: 4px; }
+.pdesc  { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.puntil { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.pcode  { display: inline-block; margin-top: 10px; background: #F5F5F5; border-radius: 6px; padding: 4px 12px; font-family: monospace; font-size: 13px; font-weight: 700; letter-spacing: 1px; color: var(--label); cursor: pointer; }
+.pcard.yel { background: var(--yellow); border-color: transparent; }
+.pcard.yel .ptag, .pcard.yel .pdesc, .pcard.yel .puntil { color: rgba(0,0,0,.5); }
+.pcard.yel .pcode { background: rgba(0,0,0,.1); color: var(--label); }
+
+/* ── ПРОФИЛЬ ── */
+.prof-hero { padding: 20px 16px 0; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.pava { width: 64px; height: 64px; border-radius: 50%; background: var(--yellow); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; flex-shrink: 0; }
+.pname { font-size: 20px; font-weight: 700; }
+.psub  { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.pedit { font-size: 13px; color: var(--label); font-weight: 500; margin-top: 4px; cursor: pointer; text-decoration: underline; text-decoration-color: var(--yellow); }
+
+/* Баллы */
+.pts-card { margin: 0 16px 16px; background: var(--label); border-radius: var(--r); padding: 18px; color: white; }
+.pts-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.pts-n { font-size: 40px; font-weight: 800; letter-spacing: -1px; line-height: 1; color: var(--yellow); }
+.pts-u { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 4px; }
+.pts-lvl { text-align: right; }
+.lvl-b { display: inline-block; background: var(--yellow); color: var(--label); border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 700; }
+.lvl-nx { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 4px; }
+.bar-bg { background: rgba(255,255,255,.15); border-radius: 4px; height: 4px; overflow: hidden; }
+.bar-f  { background: var(--yellow); height: 100%; border-radius: 4px; width: 62%; }
+.bar-leg { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.3); margin-top: 5px; }
+
+/* Реферал */
+.ref-card { margin: 0 16px 16px; background: var(--surface); border-radius: var(--r); padding: 16px; }
+.ref-t { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.ref-s { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.ref-code { background: var(--bg); border: 2px dashed var(--yellow); border-radius: var(--r-sm); padding: 13px; text-align: center; font-family: monospace; font-size: 22px; font-weight: 700; letter-spacing: 3px; cursor: pointer; }
+.ref-st { display: flex; gap: 8px; margin-top: 10px; }
+.rst { flex: 1; background: var(--bg); border-radius: var(--r-sm); padding: 10px; text-align: center; }
+.rsn { font-size: 20px; font-weight: 700; }
+.rsl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* История записей */
+.bitem { background: var(--surface); display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
+.bitem + .bitem { border-top: 1px solid var(--sep); }
+.bdate { background: var(--bg); border-radius: var(--r-sm); padding: 8px 10px; text-align: center; flex-shrink: 0; min-width: 44px; }
+.bd { font-size: 20px; font-weight: 800; line-height: 1; }
+.bm { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+.biname { font-size: 15px; font-weight: 600; }
+.bisvc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.chip { display: inline-block; margin-top: 5px; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+.chip-g { background: #E8F5E9; color: #2E7D32; }
+.chip-o { background: #FFF8E1; color: #F57F17; }
+
+/* ── BARBER CHIPS (главная) ── */
+.barber-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 96px; background: var(--surface); border-radius: var(--r);
+  padding: 14px 10px; cursor: pointer; flex-shrink: 0;
+  transition: transform .12s; text-align: center;
+}
+.barber-chip:active { transform: scale(.96); }
+.bc-photo {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: white;
+  border: 3px solid var(--bg);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.bc-name  { font-size: 14px; font-weight: 700; }
+.bc-spec  { font-size: 11px; color: var(--muted); }
+.bc-stars { font-size: 12px; color: #F59E0B; font-weight: 600; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%) translateY(8px);
+  background: var(--label); color: white; border-radius: 20px;
+  padding: 10px 20px; font-size: 14px;
+  opacity: 0; pointer-events: none; transition: all .25s; z-index: 999;
+  white-space: nowrap;
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ══ ГЛАВНАЯ ══ -->
+<div class="page on" id="pg-home">
+  <div class="greeting">
+    Привет, Бекболсун 👋
+    <div class="sub">BarberBoss · Бишкек</div>
+  </div>
+
+  <!-- Следующая запись -->
+  <div class="next-card" style="margin-top:16px">
+    <div class="next-label">Ближайшая запись</div>
+    <div class="next-name">Азамат Усупов</div>
+    <div class="next-meta">Сегодня · 14:00 · Фейд</div>
+    <div class="next-badge">✓ Подтверждено</div>
+  </div>
+
+  <!-- Акция -->
+  <div class="promo-bar" onclick="go('pg-promo')">
+    <div>
+      <div class="pb-tag">☀️ Лето</div>
+      <div class="pb-title">Скидка 15% на всё</div>
+      <div class="pb-desc">Апрель–Май · код SUMMER15</div>
+    </div>
+    <div class="pb-num">%</div>
+  </div>
+
+  <!-- Быстрые действия -->
+  <div class="quick">
+    <div class="qcard" onclick="go('pg-book')">
+      <div class="qi">✂️</div>
+      <div><div class="qt">Записаться</div><div class="qs">Выбрать мастера</div></div>
+    </div>
+    <div class="qcard" onclick="go('pg-price')">
+      <div class="qi">💰</div>
+      <div><div class="qt">Прайс</div><div class="qs">Услуги и цены</div></div>
+    </div>
+    <div class="qcard" onclick="go('pg-promo')">
+      <div class="qi">🎁</div>
+      <div><div class="qt">Акции КР</div><div class="qs">Нооруз, будни</div></div>
+    </div>
+    <div class="qcard" onclick="go('pg-profile')">
+      <div class="qi">🏆</div>
+      <div><div class="qt">Мои баллы</div><div class="qs">620 накоплено</div></div>
+    </div>
+  </div>
+
+  <!-- Мастера -->
+  <div class="sec">
+    <div class="sec-label">Наши мастера</div>
+    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:4px">
+      <div class="barber-chip" onclick="go('pg-book')">
+        <div class="bc-photo av1">А</div>
+        <div class="bc-name">Азамат</div>
+        <div class="bc-spec">Фейд · Классика</div>
+        <div class="bc-stars">★ 4.9</div>
+      </div>
+      <div class="barber-chip" onclick="go('pg-book')">
+        <div class="bc-photo av2">Э</div>
+        <div class="bc-name">Эрлан</div>
+        <div class="bc-spec">Борода · Тейпер</div>
+        <div class="bc-stars">★ 4.8</div>
+      </div>
+      <div class="barber-chip" onclick="go('pg-book')">
+        <div class="bc-photo av3">Т</div>
+        <div class="bc-name">Тимур</div>
+        <div class="bc-spec">Скин · Дизайн</div>
+        <div class="bc-stars">★ 4.7</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Филиалы -->
+  <div class="sec">
+    <div class="sec-label">3 филиала в Бишкеке</div>
+    <div class="card">
+      <div class="row" onclick="go('pg-book')">
+        <span style="font-size:20px">📍</span>
+        <div class="row-body"><div class="row-title">ул. Чуй, 123</div><div class="row-sub">Центр · 10:00–21:00</div></div>
+        <div class="row-right"></div>
+      </div>
+      <div class="row" onclick="go('pg-book')">
+        <span style="font-size:20px">📍</span>
+        <div class="row-body"><div class="row-title">пр. Манас, 45</div><div class="row-sub">Северный · 10:00–20:00</div></div>
+        <div class="row-right"></div>
+      </div>
+      <div class="row" onclick="go('pg-book')">
+        <span style="font-size:20px">📍</span>
+        <div class="row-body"><div class="row-title">ул. Ахунбаева, 100</div><div class="row-sub">Южный · 11:00–21:00</div></div>
+        <div class="row-right"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ЗАПИСЬ ══ -->
+<div class="page" id="pg-book">
+
+  <!-- Шаг 1: Филиал -->
+  <div class="step on" id="s1">
+    <div class="step-nav">
+      <div class="back" onclick="go('pg-home')">‹</div>
+      <div class="prog"><div class="pd on"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Выберите филиал</div>
+      <div class="step-sub">Шаг 1 из 5</div>
+
+      <div class="brow" onclick="selBranch(this,'Чуй, 123')">
+        <div style="font-size:28px">📍</div>
+        <div style="flex:1">
+          <div class="bn">ул. Чуй, 123</div>
+          <div class="bs">Центр · Пн–Вс 10:00–21:00</div>
+          <div class="br">3 мастера · ★ 4.9</div>
+        </div>
+        <div class="bchk"></div>
+      </div>
+
+      <div class="brow" onclick="selBranch(this,'Манас, 45')">
+        <div style="font-size:28px">📍</div>
+        <div style="flex:1">
+          <div class="bn">пр. Манас, 45</div>
+          <div class="bs">Северный · Пн–Вс 10:00–20:00</div>
+          <div class="br">2 мастера · ★ 4.7</div>
+        </div>
+        <div class="bchk"></div>
+      </div>
+
+      <div class="brow" onclick="selBranch(this,'Ахунбаева, 100')">
+        <div style="font-size:28px">📍</div>
+        <div style="flex:1">
+          <div class="bn">ул. Ахунбаева, 100</div>
+          <div class="bs">Южный · Пн–Сб 11:00–21:00</div>
+          <div class="br">2 мастера · ★ 4.8</div>
+        </div>
+        <div class="bchk"></div>
+      </div>
+
+      <br><button class="btn btn-y" onclick="ns(2)">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- Шаг 2: Мастер -->
+  <div class="step" id="s2-barber" style="display:none"></div><!-- placeholder, переименуем s2 -->
+
+  <!-- Шаг 2: Мастер (настоящий) -->
+  <div class="step" id="s2">
+    <div class="step-nav">
+      <div class="back" onclick="ps(1)">‹</div>
+      <div class="prog"><div class="pd on"></div><div class="pd on"></div><div class="pd"></div><div class="pd"></div><div class="pd"></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Выберите мастера</div>
+      <div class="step-sub">Шаг 2 из 5 · <span id="branch-label" style="color:var(--label);font-weight:600"></span></div>
+      <div class="brow" onclick="selB(this)">
+        <div class="bav av1">А</div>
+        <div style="flex:1"><div class="bn">Азамат Усупов</div><div class="bs">Классика · Фейд · Скин</div><div class="br">★★★★★ 4.9 · 128 отзывов</div></div>
+        <div class="bchk"></div>
+      </div>
+      <div class="brow" onclick="selB(this)">
+        <div class="bav av2">Э</div>
+        <div style="flex:1"><div class="bn">Эрлан Борбиев</div><div class="bs">Борода · Тейпер · Помпадур</div><div class="br">★★★★★ 4.8 · 96 отзывов</div></div>
+        <div class="bchk"></div>
+      </div>
+      <div class="brow" onclick="selB(this)">
+        <div class="bav av3">Т</div>
+        <div style="flex:1"><div class="bn">Тимур Жолдошев</div><div class="bs">Скин-фейд · Дизайн · Дреды</div><div class="br">★★★★☆ 4.7 · 74 отзывов</div></div>
+        <div class="bchk"></div>
+      </div>
+      <br><button class="btn btn-y" onclick="ns(3)">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- Шаг 3: Дата -->
+  <div class="step" id="s3">
+    <div class="step-nav">
+      <div class="back" onclick="ps(2)">‹</div>
+      <div class="prog"><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div><div class="pd"></div><div class="pd"></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Выберите дату</div>
+      <div class="step-sub">Шаг 3 из 5</div>
+      <div class="dates" id="dates"></div>
+      <br><button class="btn btn-y" onclick="ns(4)">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- Шаг 4: Время -->
+  <div class="step" id="s4">
+    <div class="step-nav">
+      <div class="back" onclick="ps(3)">‹</div>
+      <div class="prog"><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div><div class="pd"></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Время</div>
+      <div class="step-sub">Шаг 4 из 5 · Серые — заняты</div>
+      <div class="sgrid">
+        <div class="sl" onclick="selS(this)">10:00</div>
+        <div class="sl busy">11:00</div>
+        <div class="sl" onclick="selS(this)">12:00</div>
+        <div class="sl busy">13:00</div>
+        <div class="sl" onclick="selS(this)">14:00</div>
+        <div class="sl" onclick="selS(this)">15:00</div>
+        <div class="sl busy">16:00</div>
+        <div class="sl" onclick="selS(this)">17:00</div>
+        <div class="sl" onclick="selS(this)">18:00</div>
+        <div class="sl" onclick="selS(this)">19:00</div>
+        <div class="sl busy">20:00</div>
+      </div>
+      <br><button class="btn btn-y" onclick="ns(5)" style="margin-top:12px">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- Шаг 5: Подтверждение -->
+  <div class="step" id="s5">
+    <div class="step-nav">
+      <div class="back" onclick="ps(4)">‹</div>
+      <div class="prog"><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div><div class="pd on"></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Подтверждение</div>
+      <div class="step-sub">Шаг 5 из 5 · Проверьте детали</div>
+      <div class="cflist" id="cf-summary">
+        <div class="cfrow"><span class="cfk">Филиал</span><span class="cfv" id="cf-branch">ул. Чуй, 123</span></div>
+        <div class="cfrow"><span class="cfk">Мастер</span><span class="cfv">Азамат Усупов</span></div>
+        <div class="cfrow"><span class="cfk">Услуга</span><span class="cfv">Фейд (Fade)</span></div>
+        <div class="cfrow"><span class="cfk">Дата</span><span class="cfv">Пт, 27 марта</span></div>
+        <div class="cfrow"><span class="cfk">Время</span><span class="cfv">13:30</span></div>
+        <div class="cfrow" id="cf-price-row"><span class="cfk">Итого</span><span class="cfv big" id="cf-price">900 сом</span></div>
+      </div>
+
+      <!-- Промокод -->
+      <div class="pay-ttl">Промокод</div>
+      <div class="promo-input-wrap">
+        <div class="promo-field">
+          <input type="text" id="promo-inp" placeholder="NOORUZ21" maxlength="12">
+          <button class="apply-btn" onclick="applyPromo()" style="height:48px;padding:0 18px;border-radius:var(--r-btn);background:var(--label);color:white;font-size:14px;font-weight:600;border:none;cursor:pointer">Применить</button>
+        </div>
+        <div class="promo-msg" id="promo-msg"></div>
+      </div>
+
+      <!-- Использовать баллы -->
+      <div class="pts-toggle" id="pts-toggle" onclick="togglePts()">
+        <div class="pt-left">
+          <div class="pt-title">🏆 Использовать баллы</div>
+          <div class="pt-sub" id="pts-sub">620 баллов = −620 сом</div>
+        </div>
+        <div class="pt-right">
+          <div class="pt-check" id="pts-check"></div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--muted);line-height:1.5">
+        💳 Оплата на месте — наличными или картой.<br>
+        🏆 Баллы начисляются после визита автоматически.
+      </div>
+
+      <button class="btn btn-y" onclick="showOk()">✓ Записаться</button>
+    </div>
+  </div>
+
+  <!-- Отзыв (появляется через 1 час после визита) -->
+  <div class="step" id="s-review">
+    <div class="step-nav">
+      <div class="back" onclick="showOk()">‹</div>
+      <div style="font-size:13px;color:var(--muted)">Оставить отзыв</div>
+    </div>
+    <div class="step-body">
+      <div class="step-ttl">Как прошёл визит?</div>
+      <div class="step-sub">Азамат Усупов · Фейд · 27 марта</div>
+
+      <div class="review-stars" id="stars">
+        <span class="star" onclick="setStar(1)">★</span>
+        <span class="star" onclick="setStar(2)">★</span>
+        <span class="star" onclick="setStar(3)">★</span>
+        <span class="star" onclick="setStar(4)">★</span>
+        <span class="star" onclick="setStar(5)">★</span>
+      </div>
+      <div id="star-label" style="text-align:center;font-size:15px;color:var(--muted);margin-bottom:16px">Нажмите на звезду</div>
+
+      <div class="review-tags" id="rtags">
+        <div class="rtag" onclick="toggleTag(this)">✂️ Отличная стрижка</div>
+        <div class="rtag" onclick="toggleTag(this)">⏱ Вовремя</div>
+        <div class="rtag" onclick="toggleTag(this)">😊 Приятная атмосфера</div>
+        <div class="rtag" onclick="toggleTag(this)">💬 Хорошо общается</div>
+        <div class="rtag" onclick="toggleTag(this)">🧼 Чисто</div>
+        <div class="rtag" onclick="toggleTag(this)">👍 Рекомендую</div>
+      </div>
+
+      <textarea class="review-textarea" placeholder="Напишите отзыв (необязательно)..."></textarea>
+
+      <br><br>
+      <button class="btn btn-y" onclick="submitReview()" style="margin-top:8px">Отправить отзыв · +20 баллов</button>
+      <button class="btn btn-gr" onclick="showOk()" style="margin-top:10px">Пропустить</button>
+    </div>
+  </div>
+
+  <!-- Успех -->
+  <div class="step" id="s-ok">
+    <div class="ok-wrap">
+      <div class="ok-icon">✓</div>
+      <div class="ok-title">Готово!</div>
+      <div class="ok-sub">Азамат ждёт вас в пятницу в 13:30.<br>Напоминание придёт за 24 часа.</div>
+    </div>
+    <div style="padding:0 16px">
+      <div class="cflist" style="margin-bottom:14px">
+        <div class="cfrow"><span class="cfk">Мастер</span><span class="cfv">Азамат Усупов</span></div>
+        <div class="cfrow"><span class="cfk">Время</span><span class="cfv">Пт 13:30</span></div>
+        <div class="cfrow"><span class="cfk">Начислено</span><span class="cfv" style="color:var(--green)">+90 баллов</span></div>
+      </div>
+      <button class="btn btn-y" onclick="showReview()" style="margin-bottom:10px">⭐ Оставить отзыв · +20 баллов</button>
+      <button class="btn btn-gr" onclick="go('pg-home')">На главную</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ПРАЙС ══ -->
+<div class="page" id="pg-price">
+  <div class="hdr">
+    <div><div class="hdr-title">Прайс</div><div class="hdr-sub">Актуальные цены</div></div>
+  </div>
+  <div class="cats">
+    <div class="cat on">Все</div>
+    <div class="cat" onclick="selCat(this)">Стрижки</div>
+    <div class="cat" onclick="selCat(this)">Борода</div>
+    <div class="cat" onclick="selCat(this)">Уход</div>
+    <div class="cat" onclick="selCat(this)">Комбо</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Стрижки</div>
+    <div class="card">
+      <div class="prow2"><div><div class="pn">Мужская стрижка</div><div class="pd2">45 мин</div></div><div class="pp">800 сом</div></div>
+      <div class="prow2"><div><div class="pn">Детская (от 3 лет)</div><div class="pd2">30 мин</div></div><div class="pp">800 сом</div></div>
+      <div class="prow2"><div><div class="pn">Под машинку</div><div class="pd2">20 мин</div></div><div class="pp">400 сом</div></div>
+      <div class="prow2"><div><div class="pn">Hair Tattoo</div><div class="pd2">от 20 мин</div></div><div class="pp">от 200 сом</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Борода</div>
+    <div class="card">
+      <div class="prow2"><div><div class="pn">Коррекция бороды</div><div class="pd2">20 мин</div></div><div class="pp">400 сом</div></div>
+      <div class="prow2"><div><div class="pn">Моделирование бороды</div><div class="pd2">30 мин</div></div><div class="pp">600 сом</div></div>
+      <div class="prow2"><div><div class="pn">Королевское бритьё</div><div class="pd2">40 мин</div></div><div class="pp">600 сом</div></div>
+      <div class="prow2"><div><div class="pn">Камуфляж бороды</div><div class="pd2">30 мин</div></div><div class="pp">600 сом</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Уход за лицом</div>
+    <div class="card">
+      <div class="prow2"><div><div class="pn">Чистка лица + Black Mask</div><div class="pd2">40 мин</div></div><div class="pp">1 000 сом</div></div>
+      <div class="prow2"><div><div class="pn">Чистка лица + Скраб</div><div class="pd2">30 мин</div></div><div class="pp">600 сом</div></div>
+      <div class="prow2"><div><div class="pn">Тонирование волос/бороды</div><div class="pd2">40 мин</div></div><div class="pp">800 сом</div></div>
+      <div class="prow2"><div><div class="pn">Укладка</div><div class="pd2">20 мин</div></div><div class="pp">400 сом</div></div>
+      <div class="prow2"><div><div class="pn">Горячий воск</div><div class="pd2">15 мин</div></div><div class="pp">от 100 сом</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Комбо</div>
+    <div class="card">
+      <div class="prow2"><div><div class="pn">Папа + сын (до 16 лет −10%)</div><div class="pd2">90 мин</div></div><div class="pp">1 440 сом</div></div>
+      <div class="prow2"><div><div class="pn">Стрижка + борода</div><div class="pd2">70 мин</div></div><div class="pp">1 200 сом</div></div>
+      <div class="prow2"><div><div class="pn">Стрижка + уход за лицом</div><div class="pd2">80 мин</div></div><div class="pp">1 400 сом</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ АКЦИИ 🇰🇬 ══ -->
+<div class="page" id="pg-promo">
+  <div class="hdr" style="margin-bottom:16px">
+    <div><div class="hdr-title">Акции</div><div class="hdr-sub">Специально для КР</div></div>
+  </div>
+
+  <div class="pcard yel">
+    <div class="ptag">🎂 Постоянная акция</div>
+    <div class="ptitle">Именинникам −50%</div>
+    <div class="pdesc">В день рождения — скидка 50% на стрижку любой сложности. Покажите паспорт мастеру.</div>
+  </div>
+
+  <div class="pcard">
+    <div class="ptag">👨‍👦 Семейная · постоянная</div>
+    <div class="ptitle">Папа + Сын — −10%</div>
+    <div class="pdesc">Запишитесь вдвоём — скидка 10% на оба визита. Скажите мастеру при записи.</div>
+  </div>
+
+  <div class="pcard" onclick="copyCode('WEEKDAY')">
+    <div class="ptag">📅 Пн–Ср</div>
+    <div class="ptitle">Будни дешевле на 10%</div>
+    <div class="pdesc">В будни меньше очередь и выгоднее. Скидка применяется автоматически при записи.</div>
+    <div class="pcode">WEEKDAY</div>
+  </div>
+
+  <div class="pcard">
+    <div class="ptag">☕ В каждом филиале</div>
+    <div class="ptitle">Бесплатный чай и кофе</div>
+    <div class="pdesc">Пока ждёте или во время стрижки — чай, кофе и напитки бесплатно для каждого клиента.</div>
+  </div>
+</div>
+
+<!-- ══ ПРОФИЛЬ ══ -->
+<div class="page" id="pg-profile">
+
+  <div class="prof-hero">
+    <div class="pava">Б</div>
+    <div>
+      <div class="pname">Бекболсун</div>
+      <div class="psub">+996 700 *** 789</div>
+      <div class="pedit">Изменить профиль</div>
+    </div>
+  </div>
+
+  <!-- Баллы -->
+  <div class="pts-card">
+    <div class="pts-top">
+      <div><div class="pts-n">620</div><div class="pts-u">баллов · можно списать 620 сом</div></div>
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:4px">1 балл = 1 сом · начисляется 10% с каждого визита</div>
+  </div>
+
+  <!-- Реферал -->
+  <div class="ref-card">
+    <div class="ref-t">👥 Пригласи друга</div>
+    <div class="ref-s">+100 баллов за каждого друга</div>
+    <div class="ref-code" onclick="copyCode('BEKBOL7')">BEKBOL7</div>
+    <div class="ref-st">
+      <div class="rst"><div class="rsn">3</div><div class="rsl">Приглашено</div></div>
+      <div class="rst"><div class="rsn">300</div><div class="rsl">Заработано</div></div>
+      <div class="rst"><div class="rsn">1</div><div class="rsl">Активных</div></div>
+    </div>
+  </div>
+
+  <!-- Мои записи -->
+  <div class="sec" style="margin-bottom:12px">
+    <div class="sec-label">Мои записи</div>
+    <div class="card">
+      <div class="bitem">
+        <div class="bdate"><div class="bd">27</div><div class="bm">Мар</div></div>
+        <div><div class="biname">Азамат Усупов</div><div class="bisvc">Фейд · 13:30 · 450 сом</div><div class="chip chip-g">Подтверждено</div></div>
+      </div>
+      <div class="bitem">
+        <div class="bdate"><div class="bd">12</div><div class="bm">Мар</div></div>
+        <div><div class="biname">Эрлан Борбиев</div><div class="bisvc">Стрижка + Борода · 11:00</div><div class="chip chip-o">Завершено</div></div>
+      </div>
+      <div class="bitem">
+        <div class="bdate"><div class="bd">2</div><div class="bm">Мар</div></div>
+        <div><div class="biname">Азамат Усупов</div><div class="bisvc">Классическая · 14:00</div><div class="chip chip-o">Завершено</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- История баллов -->
+  <div class="sec">
+    <div class="sec-label">История баллов</div>
+    <div class="card">
+      <div class="row">
+        <span style="font-size:18px">✂️</span>
+        <div class="row-body"><div class="row-title">Стрижка у Азамата</div><div class="row-sub">12 марта</div></div>
+        <span style="font-size:15px;font-weight:700;color:var(--green)">+55</span>
+      </div>
+      <div class="row">
+        <span style="font-size:18px">👥</span>
+        <div class="row-body"><div class="row-title">Реферал: Адилет</div><div class="row-sub">5 марта</div></div>
+        <span style="font-size:15px;font-weight:700;color:var(--green)">+100</span>
+      </div>
+      <div class="row">
+        <span style="font-size:18px">🎁</span>
+        <div class="row-body"><div class="row-title">Промокод списание</div><div class="row-sub">2 марта</div></div>
+        <span style="font-size:15px;font-weight:700;color:var(--red)">−50</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="card">
+      <div class="row">
+        <span style="font-size:18px">🚪</span>
+        <div class="row-body"><div class="row-title" style="color:var(--red)">Выйти</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<nav class="tabs">
+  <div class="tab on" id="t-home" onclick="go('pg-home')">
+    <div class="ic">🏠</div><div>Главная</div><div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-book" onclick="go('pg-book')">
+    <div class="ic">✂️</div><div>Запись</div><div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-price" onclick="go('pg-price')">
+    <div class="ic">💰</div><div>Прайс</div><div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-promo" onclick="go('pg-promo')">
+    <div class="ic">🎁</div><div>Акции</div><div class="tab-dot"></div>
+  </div>
+  <div class="tab" id="t-profile" onclick="go('pg-profile')">
+    <div class="ic">👤</div><div>Профиль</div><div class="tab-dot"></div>
+  </div>
+</nav>
+
+<div class="toast" id="tst"></div>
+
+<script>
+// ── Навигация ──
+const PM = { 'pg-home':'t-home', 'pg-book':'t-book', 'pg-price':'t-price', 'pg-promo':'t-promo', 'pg-profile':'t-profile' };
+
+function go(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if (PM[id]) document.getElementById(PM[id]).classList.add('on');
+  if (id === 'pg-book') showStep(1, true);
+  window.scrollTo(0, 0);
+}
+
+// ── Шаги ── (1=Филиал 2=Мастер 3=Дата 4=Время 5=Услуга 6=Подтверждение)
+const STEP_IDS = { 1:'s1', 2:'s2', 3:'s3', 4:'s4', 5:'s5' };
+
+function showStep(n, reset) {
+  document.querySelectorAll('#pg-book .step').forEach(s => s.classList.remove('on'));
+  const id = STEP_IDS[n] || 's-ok';
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('on'); window.scrollTo(0,0); }
+}
+function ns(n) { showStep(n); }
+function ps(n) { showStep(n); }
+function showOk() { document.querySelectorAll('#pg-book .step').forEach(s => s.classList.remove('on')); document.getElementById('s-ok').classList.add('on'); window.scrollTo(0,0); }
+
+// ── Выбор филиала ──
+function selBranch(el, name) {
+  document.querySelectorAll('#s1 .brow').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  // Показываем название филиала на шаге 2 и в подтверждении
+  const lbl = document.getElementById('branch-label');
+  if (lbl) lbl.textContent = name;
+  const cf = document.getElementById('cf-branch');
+  if (cf) cf.textContent = name;
+}
+
+// ── Выбор мастера ──
+function selB(el) { document.querySelectorAll('.brow').forEach(r => r.classList.remove('sel')); el.classList.add('sel'); }
+// ── Слот ──
+function selS(el) { document.querySelectorAll('.sl').forEach(s => s.classList.remove('sel')); el.classList.add('sel'); }
+// ── Услуга ──
+function selSv(el) { document.querySelectorAll('.srow').forEach(s => s.classList.remove('sel')); el.classList.add('sel'); }
+// ── Кат прайс ──
+function selCat(el) { document.querySelectorAll('.cat').forEach(c => c.classList.remove('on')); el.classList.add('on'); }
+
+// ── Даты ──
+const D = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const M = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const wrap = document.getElementById('dates');
+const today = new Date();
+for (let i = 0; i < 14; i++) {
+  const d = new Date(today); d.setDate(today.getDate() + i);
+  const c = document.createElement('div');
+  c.className = 'dchip' + (i===0?' sel':'');
+  c.innerHTML = `<div class="dday">${D[d.getDay()]}</div><div class="dnum">${d.getDate()}</div><div class="dmon">${M[d.getMonth()]}</div>`;
+  c.onclick = () => { document.querySelectorAll('.dchip').forEach(x => x.classList.remove('sel')); c.classList.add('sel'); };
+  wrap.appendChild(c);
+}
+
+// ── Промокод ──
+const PROMOS = { 'WEEKDAY': { disc: 10, label: '−10% (Будни Пн–Ср)' }, 'BIRTHDAY': { disc: 50, label: '−50% (День рождения)' }, 'PAPA10': { disc: 10, label: '−10% (Папа + Сын)' } };
+let basePrice = 900, promoDisc = 0, ptsUsed = false;
+
+function calcPrice() {
+  let p = basePrice;
+  if (promoDisc) p = Math.round(p * (1 - promoDisc/100));
+  if (ptsUsed)   p = Math.max(0, p - 620);
+  document.getElementById('cf-price').textContent = p + ' сом';
+}
+
+function applyPromo() {
+  const val = document.getElementById('promo-inp').value.trim().toUpperCase();
+  const inp = document.getElementById('promo-inp');
+  const msg = document.getElementById('promo-msg');
+  if (PROMOS[val]) {
+    promoDisc = PROMOS[val].disc;
+    inp.className = 'ok'; msg.className = 'promo-msg ok';
+    msg.textContent = '✓ Промокод применён: ' + PROMOS[val].label;
+    calcPrice();
+  } else {
+    promoDisc = 0; inp.className = 'err'; msg.className = 'promo-msg err';
+    msg.textContent = '✗ Промокод не найден. Попробуйте: NOORUZ21';
+    calcPrice();
+  }
+}
+
+function togglePts() {
+  ptsUsed = !ptsUsed;
+  const t = document.getElementById('pts-toggle');
+  t.classList.toggle('on', ptsUsed);
+  document.getElementById('pts-sub').textContent = ptsUsed ? '✓ Будет списано 620 баллов (−620 сом)' : '620 баллов = −620 сом';
+  calcPrice();
+}
+
+// ── Отзыв ──
+let curStar = 0;
+const starLabels = ['', 'Плохо 😞', 'Не очень 😐', 'Нормально 🙂', 'Хорошо 😊', 'Отлично! 🔥'];
+
+function setStar(n) {
+  curStar = n;
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < n));
+  document.getElementById('star-label').textContent = starLabels[n];
+  document.getElementById('star-label').style.color = n >= 4 ? 'var(--green)' : n >= 3 ? 'var(--label)' : 'var(--red)';
+}
+
+function toggleTag(el) { el.classList.toggle('on'); }
+
+function showReview() {
+  document.querySelectorAll('#pg-book .step').forEach(s => s.classList.remove('on'));
+  document.getElementById('s-review').classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+function submitReview() {
+  if (!curStar) { toast('Пожалуйста, выберите оценку ⭐'); return; }
+  document.querySelectorAll('#pg-book .step').forEach(s => s.classList.remove('on'));
+  document.getElementById('s-ok').classList.add('on');
+  document.getElementById('s-ok').querySelector('.ok-sub').textContent = 'Спасибо за отзыв! Начислено +20 баллов.\nАзамат будет рад снова вас видеть 💈';
+  window.scrollTo(0, 0);
+}
+
+// ── Копирование промокода ──
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    const t = document.getElementById('tst');
+    t.textContent = '✓ Код ' + code + ' скопирован';
+    t.classList.add('on');
+    clearTimeout(window._tt);
+    window._tt = setTimeout(() => t.classList.remove('on'), 2000);
+  });
+}
+
+if (window.Telegram?.WebApp) { Telegram.WebApp.ready(); Telegram.WebApp.expand(); }
+</script>
+</body>
+</html>

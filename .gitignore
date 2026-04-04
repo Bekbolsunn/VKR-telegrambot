@@ -1,0 +1,54 @@
+# ── Секреты ──
+.env
+.env.*
+!.env.example
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# ── Виртуальное окружение ──
+.venv/
+venv/
+env/
+
+# ── Django ──
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static_root/
+
+# ── Миграции ──
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# ── macOS ──
+.DS_Store
+.AppleDouble
+*.swp
+
+# ── VSCode ──
+.vscode/
+*.code-workspace
+
+# ── IDE ──
+.idea/
+*.iml
+
+# ── Тесты / coverage ──
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── Прочее ──
+*.bak
+*.tmp
+Thumbs.db
